@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark light">
+<title>Keyboard-KI · Konfigurator</title>
+<style>
+:root{font:16px/1.5 system-ui,sans-serif;color:#e5edf7;background:#101722;--panel:#192433;--line:#34465d;--accent:#8bdcd1}*{box-sizing:border-box}body{margin:0}main{max-width:1120px;margin:auto;padding:32px 24px 64px}h1{font-size:2rem;margin:6px 0}h2{font-size:1.2rem;margin:0 0 16px}h3{font-size:1rem}p{margin:8px 0 16px}.eyebrow{color:var(--accent);letter-spacing:.14em;font-size:.75rem;font-weight:700}.muted,small{color:#bac9da}header{margin-bottom:24px}.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:22px;margin:18px 0}.row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}.spread{justify-content:space-between}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:16px}.columns{display:grid;grid-template-columns:1.3fr 1fr;gap:18px}.columns .panel{margin:0}label{display:block;font-size:.9rem;font-weight:600}input,select,button{font:inherit;border:1px solid #657b93;border-radius:6px;background:#111d2c;color:#f1f6fc;padding:9px 12px}input,select{display:block;width:100%;margin-top:5px}button{cursor:pointer;font-weight:600}button.primary{background:var(--accent);color:#102e2b;border-color:var(--accent)}button.danger{border-color:#f3b5a5}button:hover:not(:disabled){filter:brightness(1.15)}:focus-visible{outline:3px solid #ffc879;outline-offset:3px}:disabled{cursor:not-allowed;opacity:.5}fieldset{border:0;padding:0;margin:0;min-width:0}fieldset:disabled .muted{opacity:1}.badge{display:inline-block;padding:3px 10px;border-radius:30px;background:#293b50;font-size:.85rem}#message{white-space:pre-wrap;border-left:3px solid var(--accent);padding-left:12px;min-height:1.5em}#message.error{border-color:#ff9c92;color:#ffb8b0}output{display:block;font-variant-numeric:tabular-nums}.readout{background:#111d2c;padding:12px;border-radius:6px;margin:14px 0}.actions{margin-top:18px}.warning{color:#ffda9b}.channels{display:grid;grid-template-columns:repeat(9,1fr);gap:5px;margin:12px 0 18px}.channels button{padding:7px 0;font-size:.85rem}.channels button[aria-pressed="true"]{background:var(--accent);color:#102e2b}.channels button.changed::after{content:'•';color:#e99e35}.layers{display:flex;gap:6px;margin-bottom:16px}.layers button{flex:1;padding:7px}.layers button[aria-pressed="true"]{border-color:var(--accent);color:var(--accent)}.note{font-size:.86rem}#identity{overflow-wrap:anywhere}@media(max-width:760px){main{padding:22px 14px}.columns{grid-template-columns:1fr}.panel{padding:16px}.channels{grid-template-columns:repeat(6,1fr)}}
+</style>
+</head>
+<body>
+<main>
+<header><div class="eyebrow">KEYBOARD-KI / DIREKT AM GERÄT</div><h1>Deine Hälfte. Deine Einstellungen.</h1><p class="muted">Kalibrierung und Belegung über USB · ohne Installation, Cloud oder automatische Schreibvorgänge.</p></header>
+<section class="panel" aria-labelledby="connection-title">
+<div class="row spread"><h2 id="connection-title">Verbindung</h2><span class="badge" id="connection">Nicht verbunden</span></div>
+<p id="identity">Keine Tastaturhälfte ausgewählt. Werte erscheinen erst nach dem Auslesen eines echten Geräts.</p>
+<div class="row"><button id="connect" class="primary">USB-Gerät verbinden</button><button id="refresh" disabled>Status aktualisieren</button><span class="badge">Hardwareprüfung ausstehend</span></div>
+<p class="note muted" id="availability">Benötigt WebHID (z. B. Desktop-Chrome/Edge) und HTTPS oder localhost. Im Browser muss der USB-Zugriff erlaubt werden.</p>
+<p id="message" role="status" aria-live="polite">Bereit zum Verbinden. Es werden keine Beispieldaten verwendet.</p>
+<output id="device-status" class="note"></output>
+</section>
+<aside class="panel note"><strong>Vor Änderungen: physisch entsperren.</strong> BOOT an dieser Hälfte 2 Sekunden halten und loslassen; die Freigabe gilt 60 Sekunden. Lesen ist ohne Freigabe möglich. Jede Hälfte separat per USB verbinden und konfigurieren. Die Seitenkennung kommt aus der Firmware, nicht aus einer Bildschirmposition.</aside>
+<fieldset id="editor" disabled>
+<section class="panel" aria-labelledby="general-title"><h2 id="general-title">Ausgabe &amp; Abtastung</h2><div class="grid">
+<label>Route nach gespeichertem Neustart<select id="route"><option value="0">WLAN → Empfänger</option><option value="1">USB</option><option value="2">Bluetooth LE</option></select></label>
+<label>Joystick-Ausgabe (USB / BLE)<select id="joystick"><option value="0">Maus</option><option value="1">Gamepad</option></select></label>
+<label>Einschwingzeit (µs)<input id="settle" type="number" min="10" max="10000" step="1"></label>
+</div><p class="note muted">Bei USB und BLE bündelt Hälfte 0 beide Hälften; Hälfte 1 liefert ihre Eingaben drahtlos und ihr USB-Port dient Konfiguration/Versorgung. Beide Hälften auf dieselbe Route einstellen. Im WLAN-Modus bestimmt BOOT am <strong>Empfänger</strong> den Joystick-Ausgabemodus; diese Auswahl konfiguriert den Empfänger nicht. Eine neue Bluetooth-Kopplung erfordert die physische BOOT-Freigabe. Route erst übernehmen, speichern, dann explizit neu starten.</p></section>
+<div class="columns">
+<section class="panel" aria-labelledby="keys-title"><h2 id="keys-title">36 physische Kanäle</h2>
+<p class="note muted">1–32: Hauptmatrix · 33–36: abnehmbares Daumenmodul. Beim Joystick sind 33/34 die Achsen; Tastenkalibrierung dort nur mit Daumenmodul.</p>
+<div id="channels" class="channels" role="group" aria-label="Physischen Kanal auswählen"></div>
+<div id="layers" class="layers" role="group" aria-label="Belegungsebene auswählen"></div>
+<h3 id="key-title">Kanal 1 · Ebene 0</h3><div class="grid">
+<label>Ruhewert (mV)<input id="rest" type="number" min="0" max="849" step="1"></label>
+<label>Vollanschlag (mV)<input id="full" type="number" min="0" max="849" step="1"></label>
+<label>Auslösepunkt (1–1000)<input id="actuation" type="number" min="1" max="1000" step="1"></label>
+<label>Hysterese (0 bis Auslösepunkt − 1)<input id="hysteresis" type="number" min="0" max="999" step="1"></label>
+<label>Rapid-Trigger-Delta (0 = aus)<input id="rapid" type="number" min="0" max="1000" step="1"></label>
+<label>HID-Usage (dezimal)<input id="usage" type="number" min="0" max="65535" step="1" aria-describedby="usage-help"></label>
+</div><p id="usage-help" class="note muted">0 = aus · 4–231 = Keyboard-HID · 257/258/259 (0x101–103) = Ebene 1/2/3 während des Haltens · 65535 (0xffff) = transparent, nächste niedrigere Ebene. Auf Ebene 0 ist transparent aus.</p>
+<p class="note muted">Kalibrierung gilt für alle vier Ebenen. Nur die Usage ist pro Ebene. Normiert: 0 = Ruhe, 1000 = Vollanschlag; steigende und fallende mV-Verläufe sind erlaubt. 0/0 bedeutet unkalibriert, nicht gemessen.</p>
+<output id="key-raw" class="readout">Noch kein Messwert.</output>
+<div class="row"><button id="read-key">Kanal lesen</button><button id="capture-rest">Ruhe erfassen</button><button id="capture-full">Vollanschlag erfassen</button></div>
+<p class="note muted">Für die Erfassung den Sensor in Position halten: 64 echte Messungen, höchstens 20 mV Streuung. Erfassung ändert den Gerätez­wischenstand sofort, schreibt aber nicht in NVS.</p>
+</section>
+<section class="panel" aria-labelledby="axes-title"><h2 id="axes-title">Joystick-Achsen</h2>
+<label>Achse<select id="axis"><option value="0">X · physischer Kanal 33</option><option value="1">Y · physischer Kanal 34</option></select></label>
+<p class="note muted">Erfassung nur mit erkanntem und versorgtem Joystick-Modul. Minimum &lt; Mitte &lt; Maximum; jeweils 0–849 mV. 0/0/0 bedeutet unkalibriert.</p>
+<label>Minimum (mV)<input id="minimum" type="number" min="0" max="849" step="1"></label>
+<label>Mitte (mV)<input id="center" type="number" min="0" max="849" step="1"></label>
+<label>Maximum (mV)<input id="maximum" type="number" min="0" max="849" step="1"></label>
+<output id="axis-raw" class="readout">Noch kein Messwert.</output>
+<div class="row"><button id="read-axis">Achse lesen</button><button id="capture-min">Minimum erfassen</button><button id="capture-center">Mitte erfassen</button><button id="capture-max">Maximum erfassen</button></div>
+</section>
+</div>
+<section class="panel" aria-labelledby="save-title"><h2 id="save-title">Bewusst übernehmen &amp; speichern</h2>
+<output id="changes" aria-live="polite">Noch keine Einstellungen geladen.</output>
+<p class="note muted">1. Bearbeiten verändert nur diesen Browser. 2. „Übernehmen“ sendet die lokalen Änderungen an den flüchtigen Gerätez­wischenstand. 3. „Speichern“ schreibt den gesamten Gerätez­wischenstand dauerhaft. Lesen oder Verbinden speichert niemals. Bei einem Fehler können bereits bestätigte Teiländerungen im Gerät verbleiben.</p>
+<div class="row actions"><button id="apply" class="primary">Änderungen übernehmen</button><button id="save">Dauerhaft speichern</button><button id="discard" class="danger">Alles verwerfen</button><button id="restart" class="danger">Gerät neu starten</button></div>
+<p class="note warning">Verwerfen lädt den dauerhaft gespeicherten Stand und entfernt auch lokale Eingaben. Neustart verwirft ungespeicherte Geräteänderungen. Nicht übernommene Browser-Eingaben werden nicht mitgespeichert.</p>
+</section>
+</fieldset>
+<footer class="note muted panel">Statische lokale Bedienoberfläche · keine Telemetrie, keine Bibliotheken, keine automatische Verbindung. USB VID 0xcafe / PID 0x4005 · Vendor-Collection 0xff00 / Usage 1 · Feature-Report 4. Hardwareverhalten ist erst nach Prüfung an der echten Tastatur bestätigt.</footer>
+</main>
+<script>
+'use strict';
+const $ = id => document.getElementById(id);
+const routes = ['WLAN', 'USB', 'BLE'], modules = ['kein Modul', 'Daumenmodul', 'Joystick'];
+const keyFields = ['rest', 'full', 'actuation', 'hysteresis', 'rapid'];
+const axisFields = ['minimum', 'center', 'maximum'];
+let device = null, loaded = false, working = false, ticket = 0, queue = Promise.resolve();
+let remote = null, local = null, info = null, keyIndex = 0, layer = 0, axisIndex = 0;
+const copy = value => structuredClone(value);
+const different = (a, b) => String(a) !== String(b);
+function pending() { return !!local && JSON.stringify(local) !== JSON.stringify(remote); }
+function notify(text, error = false) { $('message').textContent = text; $('message').classList.toggle('error', error); }
+function controls() {
+  $('editor').disabled = !loaded || working;
+  $('connect').disabled = working || !window.isSecureContext || !('hid' in navigator);
+  $('refresh').disabled = !loaded || working;
+  if (!loaded) return;
+  const changed = pending();
+  $('apply').disabled = working || !changed;
+  $('save').disabled = working || changed || !info.dirty;
+  $('changes').textContent = `${changed ? 'Lokale Änderungen: noch nicht übernommen.' : 'Keine offenen Browser-Änderungen.'} ${info.dirty ? 'Gerätez­wischenstand: NICHT dauerhaft gespeichert.' : 'Gerätez­wischenstand: laut Gerät unverändert / gespeichert.'}`;
+  for (let k = 0; k < 36; k++) $('channels').children[k].classList.toggle('changed', JSON.stringify(local.keys[k]) !== JSON.stringify(remote.keys[k]));
+}
+async function action(fn) {
+  if (working) return;
+  working = true; controls();
+  try { await fn(); } catch (error) { notify(error.message || String(error), true); }
+  finally { working = false; controls(); }
+}
+function timed(promise, milliseconds = 4000) {
+  let timer;
+  return Promise.race([promise, new Promise((_, reject) => { timer = setTimeout(() => reject(new Error('USB-Zeitlimit überschritten. Ergebnis unbekannt; erneut verbinden und Gerätestand lesen.')), milliseconds); })]).finally(() => clearTimeout(timer));
+}
+function command(op, index = 0, selectedLayer = 0, data = []) {
+  const run = async () => {
+    if (!device || !device.opened) throw new Error('Keine offene USB-Verbindung.');
+    const target = device;
+    const request = new Uint8Array(63), id = ticket = ticket % 255 + 1;
+    request.set([0x4b, 1, id, op, 0, index, selectedLayer]); request.set(data, 7);
+    try {
+      await timed(target.sendFeatureReport(4, request));
+      const deadline = Date.now() + 15000;
+      while (Date.now() < deadline) {
+        const view = await timed(target.receiveFeatureReport(4));
+        // WebHID implementations may return the report ID before the 63-byte payload.
+        const bytes = new Uint8Array(view.buffer, view.byteOffset, view.byteLength);
+        const offset = bytes.length === 64 && bytes[0] === 4 ? 1 : 0;
+        if (bytes.length - offset !== 63) throw new Error('Unerwartete Feature-Report-Länge.');
+        const r = bytes.slice(offset);
+        if (r[0] !== 0x4b || r[1] !== 1 || r[2] !== id || r[3] !== op || r[5] !== index || r[6] !== selectedLayer) {
+          await new Promise(resolve => setTimeout(resolve, 40)); continue;
+        }
+        if (r[4] === 3) {
+          const count = new DataView(r.buffer).getUint16(7, true);
+          notify(`Gerät beschäftigt · ${op === 4 || op === 11 ? `Erfassung ${Math.min(count, 64)}/64 Messungen` : 'Speicherung läuft'} …`);
+          await new Promise(resolve => setTimeout(resolve, 50)); continue;
+        }
+        if (r[4] !== 0) throw new Error(({1:'Ungültige Werte oder zu unruhige Erfassung. Kalibrierung und Grenzen prüfen.',2:'Gerät gesperrt. BOOT 2 Sekunden halten, loslassen und erneut versuchen.',4:'Dauerhaftes Speichern fehlgeschlagen (NVS/E/A). Nicht als gespeichert behandeln.',5:'Sensor / Modul nicht verfügbar. Anschluss, Versorgung und Modul prüfen.'})[r[4]] || `Unbekannter Gerätestatus ${r[4]}.`);
+        return new DataView(r.buffer, 7, 56);
+      }
+      throw new Error('Antwort-Zeitlimit überschritten. Ergebnis unbekannt; erneut verbinden und Gerätestand lesen.');
+    } catch (error) {
+      if (/Zeitlimit|Report-Länge/.test(error.message)) { loaded = false; $('connection').textContent = 'Verbindung prüfen'; }
+      throw error;
+    }
+  };
+  const result = queue.then(run); queue = result.catch(() => {}); return result;
+}
+function words(values) {
+  const bytes = new Uint8Array(values.length * 2), view = new DataView(bytes.buffer);
+  values.forEach((value, i) => view.setUint16(i * 2, Number(value), true)); return bytes;
+}
+async function readInfo() {
+  const d = await command(1);
+  if (d.getUint8(0) > 1 || d.getUint8(1) > 2 || d.getUint8(2) > 1) throw new Error('Unbekannte Gerätekennung oder Konfiguration.');
+  info = {half:d.getUint8(0), route:d.getUint8(1), joystick:d.getUint8(2), module:d.getUint8(3), unlocked:!!d.getUint8(4), settle:d.getUint16(5,true), dirty:!!d.getUint8(7), main:!!d.getUint8(8), dock:!!d.getUint8(9), power:!!d.getUint8(10), boot:d.getUint8(11), id:d.getInt16(12,true)};
+  $('identity').textContent = `${device.productName || 'Keyboard-KI'} · physische Hälfte: Firmware-ID ${info.half} · ${device.serialNumber ? `Seriennummer ${device.serialNumber}` : 'keine Seriennummer vom Browser gemeldet'} · VID 0x${device.vendorId.toString(16)} / PID 0x${device.productId.toString(16)}`;
+  $('device-status').textContent = `${info.unlocked ? 'BOOT-Freigabe aktiv (max. 60 s)' : 'Gesperrt: BOOT-Freigabe nötig zum Ändern'} · aktuell gestartet: ${routes[info.boot] || 'unbekannt'} · ${modules[info.module] || 'unbekanntes Modul'} · Haupt-ADC ${info.main ? 'gültig' : 'ungültig'} · Dock-ADC ${info.dock ? 'gültig' : 'ungültig'} · Dock-Versorgung ${info.power ? 'an' : 'aus'} · Dock-ID ${info.id < 0 ? 'ungültig' : info.id + ' mV'}`;
+  return {route:String(info.route), joystick:String(info.joystick), settle:String(info.settle)};
+}
+function decodeKey(d) { return {cal:keyFields.map((_,i) => String(d.getUint16(i*2,true))), usage:String(d.getUint16(10,true)), raw:d.getInt16(12,true), down:!!d.getUint8(14)}; }
+function decodeAxis(d) { return {values:axisFields.map((_,i) => String(d.getUint16(i*2,true))), raw:d.getInt16(6,true)}; }
+function showRaw(id, raw, down) { $(id).textContent = `Letzter gelesener Rohwert: ${raw < 0 ? 'ungültig / nicht verfügbar' : raw + ' mV'}${down === undefined ? '' : ` · Taste ${down ? 'gedrückt' : 'nicht gedrückt'}`} · ${new Date().toLocaleTimeString('de-DE')}`; }
+function drawKey() {
+  keyFields.forEach((name,i) => $(name).value = local.keys[keyIndex].cal[i]);
+  $('usage').value = local.keys[keyIndex].usages[layer];
+  $('key-title').textContent = `Kanal ${keyIndex+1} · Ebene ${layer}`;
+  [...$('channels').children].forEach((button,i) => button.setAttribute('aria-pressed', String(i === keyIndex)));
+  [...$('layers').children].forEach((button,i) => button.setAttribute('aria-pressed', String(i === layer)));
+  $('key-raw').textContent = 'Für diesen Kanal noch keinen aktuellen Rohwert gelesen.';
+}
+function drawAxis() { axisFields.forEach((name,i) => $(name).value = local.axes[axisIndex][i]); $('axis-raw').textContent = 'Für diese Achse noch keinen aktuellen Rohwert gelesen.'; }
+function drawGeneral() { for (const name of ['route','joystick','settle']) $(name).value = local.general[name]; }
+async function readKey(k = keyIndex, l = layer) {
+  const value = decodeKey(await command(2,k,l)), old = remote.keys[k];
+  value.cal.forEach((v,i) => { if (!different(local.keys[k].cal[i], old.cal[i])) local.keys[k].cal[i] = v; });
+  if (!different(local.keys[k].usages[l], old.usages[l])) local.keys[k].usages[l] = value.usage;
+  old.cal = value.cal; old.usages[l] = value.usage;
+  if (k === keyIndex && l === layer) { drawKey(); showRaw('key-raw',value.raw,value.down); }
+}
+async function readAxis(a = axisIndex) {
+  const value = decodeAxis(await command(6,a));
+  value.values.forEach((v,i) => { if (!different(local.axes[a][i], remote.axes[a][i])) local.axes[a][i] = v; });
+  remote.axes[a] = value.values;
+  if (a === axisIndex) { drawAxis(); showRaw('axis-raw',value.raw); }
+}
+async function loadAll() {
+  loaded = false; controls();
+  const general = await readInfo(), keys = [], axes = [];
+  for (let k=0;k<36;k++) {
+    const usages = []; let first;
+    for (let l=0;l<4;l++) { const value = decodeKey(await command(2,k,l)); first ||= value; usages.push(value.usage); }
+    keys.push({cal:first.cal, usages});
+    notify(`Einstellungen lesen · Kanal ${k+1}/36, alle vier Ebenen …`);
+  }
+  for (let a=0;a<2;a++) axes.push(decodeAxis(await command(6,a)).values);
+  remote = {general, keys, axes}; local = copy(remote); loaded = true;
+  drawGeneral(); drawKey(); drawAxis();
+  $('connection').textContent = 'Verbunden · vollständig gelesen';
+}
+function integer(value, min, max, name) {
+  if (String(value).trim() === '' || !Number.isInteger(Number(value)) || Number(value) < min || Number(value) > max) throw new Error(`${name}: ganze Zahl von ${min} bis ${max} erforderlich.`);
+  return Number(value);
+}
+function validate() {
+  integer(local.general.route,0,2,'Route'); integer(local.general.joystick,0,1,'Joystick-Modus'); integer(local.general.settle,10,10000,'Einschwingzeit');
+  local.keys.forEach((key,k) => {
+    const [rest,full,act,hyst] = key.cal.map((v,i) => integer(v, i===2 ? 1:0, i<2 ? 849 : i===3 ? 999 : 1000, `Kanal ${k+1}: ${keyFields[i]}`));
+    if ((rest || full) && rest === full) throw new Error(`Kanal ${k+1}: Ruhe und Vollanschlag müssen verschieden sein (oder beide 0).`);
+    if ((!rest) !== (!full)) throw new Error(`Kanal ${k+1}: beide Endlagen erfassen; ein fehlender Wert ist keine gemessene 0-mV-Endlage.`);
+    if (hyst >= act) throw new Error(`Kanal ${k+1}: Hysterese muss kleiner als der Auslösepunkt sein.`);
+    key.usages.forEach((v,l) => { const u=integer(v,0,65535,`Kanal ${k+1}, Ebene ${l}: Usage`); if (!(u===0 || u>=4 && u<=231 || u>=257 && u<=259 || u===65535)) throw new Error(`Kanal ${k+1}, Ebene ${l}: erlaubte Usage 0, 4–231, 257–259 oder 65535.`); });
+  });
+  local.axes.forEach((axis,a) => { const [min,center,max]=axis.map(v=>integer(v,0,849,`Achse ${a===0?'X':'Y'}`)); if ((min || center || max) && !(min<center && center<max)) throw new Error(`Achse ${a===0?'X':'Y'}: Minimum < Mitte < Maximum erforderlich (oder alle 0).`); });
+  for (const name of ['route','joystick','settle']) local.general[name] = String(Number(local.general[name]));
+  local.keys.forEach(key => { key.cal = key.cal.map(v => String(Number(v))); key.usages = key.usages.map(v => String(Number(v))); });
+  local.axes = local.axes.map(axis => axis.map(v => String(Number(v))));
+}
+async function capture(isAxis, kind) {
+  const index = isAxis ? axisIndex : keyIndex;
+  notify('Erfassung läuft: Sensor in Position halten …');
+  const d = await command(isAxis ? 11 : 4,index,isAxis ? 0 : layer,[kind]);
+  const value = String(d.getUint16(2,true));
+  info.dirty = true;
+  if (isAxis) { remote.axes[index][kind]=value; local.axes[index][kind]=value; drawAxis(); await readAxis(index); }
+  else { remote.keys[index].cal[kind]=value; local.keys[index].cal[kind]=value; drawKey(); await readKey(index,layer); }
+  await readInfo(); notify(`Erfasst: ${value} mV · Streuung ${d.getUint16(4,true)} mV. Nur Gerätez­wischenstand, noch nicht dauerhaft gespeichert.`);
+}
+for (let k=0;k<36;k++) {
+  const button=document.createElement('button'); button.type='button'; button.textContent=k+1; button.setAttribute('aria-label',`Physischer Kanal ${k+1}`); button.setAttribute('aria-pressed','false');
+  button.onclick=()=>action(async()=>{keyIndex=k;drawKey();await readKey();notify('Kanal gelesen; lokale Eingaben bleiben erhalten.');}); $('channels').append(button);
+}
+for (let l=0;l<4;l++) {
+  const button=document.createElement('button'); button.type='button'; button.textContent=`Ebene ${l}`; button.setAttribute('aria-pressed','false');
+  button.onclick=()=>action(async()=>{layer=l;drawKey();await readKey();notify('Ebene gelesen; lokale Eingaben bleiben erhalten.');}); $('layers').append(button);
+}
+keyFields.forEach((name,i)=>$(name).addEventListener('input',()=>{local.keys[keyIndex].cal[i]=$(name).value;controls();}));
+$('usage').addEventListener('input',()=>{local.keys[keyIndex].usages[layer]=$('usage').value;controls();});
+axisFields.forEach((name,i)=>$(name).addEventListener('input',()=>{local.axes[axisIndex][i]=$(name).value;controls();}));
+for (const name of ['route','joystick','settle']) $(name).addEventListener('input',()=>{local.general[name]=$(name).value;controls();});
+$('axis').onchange=()=>action(async()=>{axisIndex=Number($('axis').value);drawAxis();await readAxis();notify('Achse gelesen; lokale Eingaben bleiben erhalten.');});
+$('connect').onclick=()=>action(async()=>{
+  if (local && (pending() || info?.dirty) && !confirm('Erneutes Verbinden ersetzt den Browserstand durch ausgelesene Werte. Nicht übernommene Eingaben gehen verloren. Fortfahren?')) return;
+  const devices=await navigator.hid.requestDevice({filters:[{vendorId:0xcafe,productId:0x4005,usagePage:0xff00,usage:1}]});
+  if (!devices.length) {notify('Keine Auswahl. Verbindung unverändert.');return;}
+  const selected=devices[0];
+  if (device && device!==selected && device.opened) await timed(device.close());
+  device=selected; loaded=false;
+  if (!device.opened) await timed(device.open());
+  $('connection').textContent='Verbunden · lese Einstellungen …';
+  await loadAll(); await readKey(); await readAxis(); notify('Alle 36 Kanäle, vier Ebenen und beide Achsen gelesen. Kein Schreibvorgang ausgeführt.');
+});
+$('refresh').onclick=()=>action(async()=>{
+  const general=await readInfo();
+  for(const name of ['route','joystick','settle']) {if(!different(local.general[name],remote.general[name]))local.general[name]=general[name];}
+  remote.general=general;drawGeneral();notify('Gerätestatus aktualisiert. Lokale Eingaben unverändert erhalten.');
+});
+$('read-key').onclick=()=>action(async()=>{await readKey();await readInfo();notify('Kanal und Rohwert gelesen; lokale Eingaben bleiben erhalten.');});
+$('read-axis').onclick=()=>action(async()=>{await readAxis();await readInfo();notify('Achse und Rohwert gelesen; lokale Eingaben bleiben erhalten.');});
+$('capture-rest').onclick=()=>action(()=>capture(false,0)); $('capture-full').onclick=()=>action(()=>capture(false,1));
+$('capture-min').onclick=()=>action(()=>capture(true,0)); $('capture-center').onclick=()=>action(()=>capture(true,1)); $('capture-max').onclick=()=>action(()=>capture(true,2));
+$('apply').onclick=()=>action(async()=>{
+  validate();
+  // Keep each acknowledged write in the shadow; a later failure never looks saved.
+  for(let k=0;k<36;k++) {
+    const calibrationChanged=JSON.stringify(local.keys[k].cal)!==JSON.stringify(remote.keys[k].cal);
+    for(let l=0;l<4;l++) if(calibrationChanged || different(local.keys[k].usages[l],remote.keys[k].usages[l])) {
+      const value=decodeKey(await command(3,k,l,words([...local.keys[k].cal,local.keys[k].usages[l]])));
+      remote.keys[k].cal=value.cal;remote.keys[k].usages[l]=value.usage;info.dirty=true;
+    }
+  }
+  for(let a=0;a<2;a++) if(JSON.stringify(local.axes[a])!==JSON.stringify(remote.axes[a])) {await command(7,a,0,words(local.axes[a]));remote.axes[a]=copy(local.axes[a]);info.dirty=true;}
+  if(JSON.stringify(local.general)!==JSON.stringify(remote.general)) {
+    await command(5,0,0,[Number(local.general.route),Number(local.general.joystick),...words([local.general.settle])]);remote.general=copy(local.general);info.dirty=true;
+  }
+  await readInfo(); notify('Änderungen im Gerätez­wischenstand übernommen. Noch nicht dauerhaft gespeichert.');
+});
+$('save').onclick=()=>action(async()=>{
+  if(pending())throw new Error('Zuerst lokale Änderungen explizit übernehmen oder verwerfen.');
+  await command(8);info.dirty=false;await readInfo();
+  if(info.dirty)throw new Error('Gerät meldet weiterhin ungespeicherte Änderungen.');
+  notify('Gesamter Gerätez­wischenstand vom Gerät als dauerhaft gespeichert bestätigt. Route wird erst beim Neustart aktiv.');
+});
+$('discard').onclick=()=>action(async()=>{
+  if(!confirm('Alle lokalen Eingaben und den gesamten ungespeicherten Gerätez­wischenstand verwerfen?'))return;
+  await command(9);await loadAll();await readKey();await readAxis();notify('Dauerhaft gespeicherter Stand neu geladen. Lokale und flüchtige Änderungen verworfen.');
+});
+$('restart').onclick=()=>action(async()=>{
+  if(pending() || info.dirty)throw new Error('Vor dem Neustart Änderungen bewusst übernehmen und speichern oder alles verwerfen.');
+  if(!confirm('Diese physische Hälfte jetzt neu starten? Die USB-Verbindung kann abbrechen.'))return;
+  await command(10);loaded=false;$('connection').textContent='Neustart angefordert';notify('Neustart bestätigt. Bei USB/BLE-Routenwechsel erneut per USB verbinden, sobald verfügbar.');
+});
+if('hid' in navigator) navigator.hid.addEventListener('disconnect',event=>{
+  if(event.device!==device)return;
+  loaded=false;device=null;$('connection').textContent='Getrennt';notify('USB-Gerät getrennt. Lokale Eingaben sind noch sichtbar, aber nicht automatisch gespeichert. Zum Auslesen erneut verbinden.',true);controls();
+});
+if(!window.isSecureContext) notify('Unsicherer Kontext: Seite über HTTPS oder http://localhost öffnen. WebHID ist hier nicht verfügbar.',true);
+else if(!('hid' in navigator)) notify('Dieser Browser bietet kein WebHID. Bitte Desktop-Chrome oder Edge mit USB-Zugriff verwenden.',true);
+controls();
+</script>
+</body>
+</html>
